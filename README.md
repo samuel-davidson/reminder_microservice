@@ -1,6 +1,11 @@
 # Library Reminder Microservice
 ### Overview
-    Description 
+    This microservice is a reminder service for a library application.  It receives as a string
+    the titles in a user's library and last edit/ add date for those titles, and returns a 
+    string containing the titles which were added or edited in the last week.  If the user added
+    or edited more than 3 titles in the past week, an additional encouraging message is also sent
+    in return.  If there are no such titles, then the service returns the amount of days since the
+    most recent update or addition of a title to that user's library.   
 ### Requirements
     - Python 3.x
     - ZeroMQ Library

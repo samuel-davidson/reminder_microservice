@@ -26,7 +26,7 @@ def get_recent_entries(dates, titles):
     if recent_titles:
         if len(recent_titles) >= 3:
             return (
-                f"You've had a busy week! Entries added or updated in the last week: "
+                f"You've had a busy week, good job! Entries added or updated in the last week: "
                 f"{', '.join(recent_titles)}"
             )
         else:
