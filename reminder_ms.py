@@ -1,61 +1,70 @@
 # REMINDER MICROSERVICE
     # Implement a library reminder microservice that lets users know how long it has been since
         # they have been active.
-    # receives string format and returns string format
-    # if not string format, then maybe json? with the list of the entries for that
-        # user and the date of entry/ last update?
-    # incoming string should be:
-        # list of titles updated in last 7 days
-        # if none:
-            # return : "You have no new entries in the past 7 days! Would you like to make a new entry?"
-        # else:
-            # return : "Here are your most recent additions to the library: [List of titles]
-    # communication with zeroMQ
+
+import zmq
+from datetime import datetime, timedelta
+
+def process_dates(dates_string):
+    """ Process the dates and titles from the incoming string. """
+    entries = dates_string.split(';')                               # split string
+    titles = []
+    dates = []
+    for i in range(1, len(entries), 2):                             # traverse the string and split dates and times into two lists
+        title = entries[i - 1]
+        date_str = entries[i]
+        date = datetime.strptime(date_str, "%m%d%Y")
+        dates.append(date)
+        titles.append(title)
+    return dates, titles                                            # return lists
+
+def get_recent_entries(dates, titles):
+    """ Check for entries and updates within the last week. """
+    now = datetime.now()                                                                    # get current time
+    one_week_ago = now - timedelta(days=7)                                                  # get 7 days ago for limit
+    recent_titles = [titles[i] for i, date in enumerate(dates) if date >= one_week_ago]
+    if recent_titles:
+        if len(recent_titles) >= 3:
+            return (
+                f"You've had a busy week! Entries added or updated in the last week: "
+                f"{', '.join(recent_titles)}"
+            )
+        else:
+            return (
+                f"Entries added or updated in the last week: "
+                f"{', '.join(recent_titles)}"
+            )
+    else:
+        if dates:
+            last_entry_date = max(dates)
+            days_since_last_entry = (now - last_entry_date).days
+            return f"No recent updates to your library. Days since last entry: {days_since_last_entry}"
+        else:
+            return "No titles in library."
+
+def main():
+    context = zmq.Context()
+    # Create a SUB socket for receiving messages
+    subscriber = context.socket(zmq.SUB)
+    subscriber.bind("tcp://*:5555")
+    subscriber.setsockopt_string(zmq.SUBSCRIBE, "")
+
+    # Create a REP socket for sending responses
+    responder = context.socket(zmq.REP)
+    responder.bind("tcp://*:5556")
+
+    while True:
+        # Receive a message from the publisher
+        dates_string = subscriber.recv_string()
+        # Process the received message
+        dates, titles = process_dates(dates_string)
+        # Determine the reminder string
+        reminder_message = get_recent_entries(dates, titles)
+        # Send the reminder back
+        responder.send_string(reminder_message)
+
+if __name__ == "__main__":
+    main()
 
 
-    # USER STORIES
 
-    # Duration Since Last Use
-        # As an existing user, I want to be reminded when I haven’t updated my library in a certain
-            # amount of days so that I can get back to using the software
-                        # Given the user logs into the software, when they get to their library, then they are
-                            # reminded that they have yet to update the library in X amount of days
-
-    # Set Reminders
-        # As a new user, I want to set reminders to read after 7 days of no activity so that I can stay
-            # on top of my reading
-                        # Given the new user sets up their new profile, when they reach the profile
-                            # registration page, then they are given the option to set a reminder time limit
-
-    # Titles Recently Updated
-        # As a user, I want to be reminded of the titles that I updated or added to in the last week so
-            # that I can know which books are new in my library.
-                        # Given the user logs into the software, when they get to their library, then they are
-                            # notified of the titles added to the library within the last week.
-
-
-
-
-
-# Write a small test program to demonstrate that the microservice can be called and respond with data.
-# Add a README to your GitHub (or update it if you already have one) that
-    # contains your communication contract. (Once you define it, don't change it!
-    # Your teammate is relying on you.) README must contain...
-# Clear instructions for how to programmatically REQUEST data from the microservice
-    # you implemented. Include an example call.
-# Clear instructions for how to programmatically RECEIVE data from the microservice you implemented.
-# UML sequence diagram showing how requesting and receiving data works. Make it detailed enough that
-    # your teammate (and your grader) will understand.
-# Write a mitigation plan by answering these questions:
-# For which teammate did you implement “Microservice A”?
-# What is the current status of the microservice? Hopefully, it’s done!
-# If the microservice isn’t done, which parts aren’t done and when will they be done?
-# How is your teammate going to access your microservice? Should they get your code from
-    # GitHub? Should they run your code locally? Is your microservice hosted somewhere? Etc.
-# If your teammate cannot access/call YOUR microservice, what should they do?
-    # Can you be available to help them? What’s your availability?
-# If your teammate cannot access/call your microservice,
-    # by when do they need to tell you?
-# Is there anything else your teammate needs to know? Anything
-    # you’re worried about? Any assumptions you’re making? Any other mitigations
-    # / backup plans you want to mention or want to discuss with your teammate?
