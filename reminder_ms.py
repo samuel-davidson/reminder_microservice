@@ -43,25 +43,17 @@ def get_recent_entries(dates, titles):
             return "No titles in library."
 
 def main():
-    context = zmq.Context()
-    # Create a SUB socket for receiving messages
-    subscriber = context.socket(zmq.SUB)
-    subscriber.bind("tcp://*:5555")
-    subscriber.setsockopt_string(zmq.SUBSCRIBE, "")
-
-    # Create a REP socket for sending responses
-    responder = context.socket(zmq.REP)
-    responder.bind("tcp://*:5556")
+    context = zmq.Context()                                         # setup to receive incoming string
+    receive = context.socket(zmq.REP)
+    receive.connect("tcp://localhost:3000")
+    response = context.socket(zmq.REQ)                              # setup to send back reminder string
+    response.bind("tcp://*:3005")
 
     while True:
-        # Receive a message from the publisher
-        dates_string = subscriber.recv_string()
-        # Process the received message
-        dates, titles = process_dates(dates_string)
-        # Determine the reminder string
-        reminder_message = get_recent_entries(dates, titles)
-        # Send the reminder back
-        responder.send_string(reminder_message)
+        incoming_string = receive.recv_string()                     # get the incoming string
+        dates, titles = process_dates(incoming_string)              # process the string
+        reminder_message = get_recent_entries(dates, titles)        # determine reminder message
+        response.send_string(reminder_message)                      # send message back to main program
 
 if __name__ == "__main__":
     main()
