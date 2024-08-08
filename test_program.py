@@ -7,18 +7,23 @@ def run_publisher():
     context = zmq.Context()                                             # setup to send outgoing string
     send = context.socket(zmq.REQ)
     send.bind("tcp://*:3000")
-    data = "Book1;07012024;Book2;07102024;Book3;06252024"               # Example data to send
+
+    # lines below are commented out to test different responses from the microservice
+    # data = "Book1;07122024;Book2;07192024;Book3;06252024"
+    # data = "Book1;07122024;Book2;07192024;Book3;06252024;Book4;08032024;Book5;08052024"
+
+    data = "Book1;07122024;Book2;07192024;Book3;06252024;Book4;08032024;Book5;08052024;Book6;08062024"               # Example data to send
     send.send_string(data)                                              # Send data
     time.sleep(2)                                                       # Give time to process data
 
 
 def run_client():
-    """ Send a request to the microservice and receive responses. """
+    """ Receive responses from microservice. """
     context = zmq.Context()                                             # setup to receive incoming message
     receive = context.socket(zmq.REP)
     receive.connect("tcp://localhost:3005")
     response = receive.recv_string()
-    print("Reminder: ", response)                                       # print response
+    print(response)                                       # print response
 
 
 if __name__ == "__main__":
