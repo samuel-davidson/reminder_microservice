@@ -5,6 +5,7 @@
 import zmq
 from datetime import datetime, timedelta
 
+
 def process_dates(dates_string):
     """ Process the dates and titles from the incoming string. """
     entries = dates_string.split(';')                               # split string
@@ -17,6 +18,7 @@ def process_dates(dates_string):
         dates.append(date)
         titles.append(title)
     return dates, titles                                            # return lists
+
 
 def get_recent_entries(dates, titles):
     """ Check for entries and updates within the last week. """
@@ -42,18 +44,18 @@ def get_recent_entries(dates, titles):
         else:
             return "No titles in library."
 
+
 def main():
     context = zmq.Context()                                         # setup to receive incoming string
     receive = context.socket(zmq.REP)
     receive.connect("tcp://localhost:3000")
     response = context.socket(zmq.REQ)                              # setup to send back reminder string
     response.bind("tcp://*:3005")
+    incoming_string = receive.recv_string()                     # get the incoming string
+    dates, titles = process_dates(incoming_string)              # process the string
+    reminder_message = get_recent_entries(dates, titles)        # determine reminder message
+    response.send_string(reminder_message)                      # send message back to main program
 
-    while True:
-        incoming_string = receive.recv_string()                     # get the incoming string
-        dates, titles = process_dates(incoming_string)              # process the string
-        reminder_message = get_recent_entries(dates, titles)        # determine reminder message
-        response.send_string(reminder_message)                      # send message back to main program
 
 if __name__ == "__main__":
     main()

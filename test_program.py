@@ -9,10 +9,10 @@ def run_publisher():
     send.bind("tcp://*:3000")
 
     # lines below are commented out to test different responses from the microservice
-    # data = "Book1;07122024;Book2;07192024;Book3;06252024"
+    data = "Book1;07122024;Book2;07192024;Book3;06252024"
     # data = "Book1;07122024;Book2;07192024;Book3;06252024;Book4;08032024;Book5;08052024"
+    # data = "Book1;07122024;Book2;07192024;Book3;06252024;Book4;08032024;Book5;08052024;Book6;08062024"               # Example data to send
 
-    data = "Book1;07122024;Book2;07192024;Book3;06252024;Book4;08032024;Book5;08052024;Book6;08062024"               # Example data to send
     send.send_string(data)                                              # Send data
     time.sleep(2)                                                       # Give time to process data
 
